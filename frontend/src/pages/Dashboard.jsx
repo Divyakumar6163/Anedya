@@ -17,9 +17,9 @@ export default function Dashboard() {
       ]);
 
       setDevices([deviceRes.data]);
-      console.log("Fetched device data:", deviceRes.data);
+      // console.log("Fetched device data:", deviceRes.data);
       setHistory(historyRes.data.data || []);
-      console.log("Fetched history data:", historyRes.data.data);
+      // console.log("Fetched history data:", historyRes.data.data);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -42,16 +42,6 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    const relay = devices[0]?.relay;
-    console.log("Relay state changed:", relay);
-    // if (!relay) {
-    //   if (intervalID) {
-    //     clearInterval(intervalID);
-    //     setIntervalId(null);
-    //   }
-    //   return;
-    // }
-
     const id = setInterval(() => {
       fetchData();
     }, 3000);
