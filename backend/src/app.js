@@ -5,8 +5,16 @@ const simulator = require("../simulator");
 
 const app = express();
 
-// Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:10000",
+      "https://anedya.onrender.com/api",
+    ],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // DB
