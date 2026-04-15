@@ -7,7 +7,7 @@ exports.getDevices = async (req, res) => {
     // console.log("Live data:", data);
     res.json({
       name: "Room 1",
-      status: data.online ? "online" : "offline",
+      status: data.status,
       temperature: data.temperature,
       humidity: data.humidity,
       relay: data.relay,
@@ -35,12 +35,14 @@ exports.toggleRelay = async (req, res) => {
       });
     }
     device.relay = !device.relay;
+    device.status = device.relay ? "online" : "offline";
     // if (relayState) {
     //   simulator.startSimulator();
     // } else {
     //   simulator.stopSimulator();
     // }
     console.log("Toggling relay to:", device.relay);
+    console.log("Device state after toggle:", device.status);
     await device.save();
     if (device.relay) {
       await simulator.startSimulator();

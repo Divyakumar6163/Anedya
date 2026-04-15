@@ -9,6 +9,7 @@ export default function DeviceCard({ device, history, toggleRelay, role }) {
   const [humChange, setHumChange] = useState(0);
 
   useEffect(() => {
+    // console.log("Device prop updated:", device);
     setRelayState(device.relay);
     setStatus(device.status);
   }, [device]);

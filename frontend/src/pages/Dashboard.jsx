@@ -9,9 +9,6 @@ export default function Dashboard() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useContext(AuthContext);
-
-  const [intervalID, setIntervalId] = useState(null);
-
   const fetchData = async () => {
     try {
       const [deviceRes, historyRes] = await Promise.all([
@@ -58,9 +55,6 @@ export default function Dashboard() {
     const id = setInterval(() => {
       fetchData();
     }, 3000);
-
-    setIntervalId(id);
-
     return () => clearInterval(id);
   }, [devices]);
 
