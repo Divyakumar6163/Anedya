@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { FaArrowUp, FaArrowDown, FaPowerOff } from "react-icons/fa";
-import socket from "../services/socket";
 
 export default function DeviceCard({ device, history, toggleRelay, role }) {
   const [relayState, setRelayState] = useState(device.relay);
@@ -62,7 +61,7 @@ export default function DeviceCard({ device, history, toggleRelay, role }) {
         {/* 🌡 TEMP */}
         <div className="p-3 rounded-xl bg-blue-50">
           <p className="text-sm text-blue-700 font-medium">Temperature</p>
-          <p className="text-lg font-bold">{device.temperature}°C</p>
+          <p className="text-lg font-bold">{device?.temperature}°C</p>
 
           <div className="flex items-center gap-1 text-sm mt-1">
             {tempChange > 0 ? (
