@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import API from "../services/api";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -9,17 +9,25 @@ export default function Login() {
   const [error, setError] = useState("");
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      login(token);
+      navigate("/");
+    }
+  }, []);
+
   const handleSubmit = async () => {
     try {
       const res = await API.post("/auth/login", form);
-      console.log("Login response:", res.data);
+
       if (res.data.isFirstLogin) {
-        console.log("First login detected, redirecting to set password");
         navigate("/set-password", {
           state: { userId: res.data.userId, email: form.email },
         });
         return;
       }
+
       login(res.data.token);
       navigate("/");
     } catch (err) {
