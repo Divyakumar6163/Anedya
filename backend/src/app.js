@@ -9,6 +9,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
+      "https://anedya.vercel.app",
+      "https://anedya.vercel.app/login",
       "http://localhost:10000",
       "https://anedya.onrender.com/api",
     ],
