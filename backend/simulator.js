@@ -1,21 +1,12 @@
-const socketIO = require("./socket");
+const Device = require("./models/Device");
 const DeviceHistory = require("./models/DeviceHistory");
-
 let temperature = 32;
 let humidity = 50;
-let relay = false;
-
 let intervalId = null;
 
-function setRelay(state) {
-  relay = state;
-  console.log("Relay:", relay);
-  return relay;
-}
-
-async function generateData() {
+async function generateData(relay) {
+  console.log("Generated Relay:", relay);
   if (!relay) return;
-
   temperature += (Math.random() - 0.49) * 2;
   humidity += (Math.random() - 0.5) * 2;
 
@@ -25,9 +16,6 @@ async function generateData() {
     humidity: +humidity.toFixed(2),
   };
 
-  console.log("📊 New Data:", data);
-
-  // 🔥 SAVE DIRECTLY TO DB
   await DeviceHistory.findOneAndUpdate(
     {},
     {
@@ -42,13 +30,12 @@ async function generateData() {
   );
 }
 
-function startSimulator() {
+async function startSimulator() {
   if (intervalId) return;
-
-  console.log("🚀 Simulator Started");
-
+  console.log("Simulator Started");
+  const data = await Device.findOne();
   intervalId = setInterval(() => {
-    generateData();
+    generateData(data.relay);
   }, 3000);
 }
 
@@ -63,5 +50,5 @@ function stopSimulator() {
 module.exports = {
   startSimulator,
   stopSimulator,
-  setRelay,
+  generateData,
 };

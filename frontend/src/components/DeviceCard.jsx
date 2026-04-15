@@ -3,40 +3,16 @@ import { FaArrowUp, FaArrowDown, FaPowerOff } from "react-icons/fa";
 import socket from "../services/socket";
 
 export default function DeviceCard({ device, history, toggleRelay, role }) {
-  // ✅ FIXED (no inversion)
   const [relayState, setRelayState] = useState(device.relay);
   const [status, setStatus] = useState(device.status);
 
   const [tempChange, setTempChange] = useState(0);
   const [humChange, setHumChange] = useState(0);
 
-  /* ===========================
-     SYNC WITH DEVICE PROP
-  =========================== */
   useEffect(() => {
     setRelayState(device.relay);
     setStatus(device.status);
   }, [device]);
-
-  /* ===========================
-     SOCKET (REAL-TIME RELAY)
-  =========================== */
-  useEffect(() => {
-    socket.off("relayUpdated"); // 🔥 prevent duplicates
-
-    socket.on("relayUpdated", (data) => {
-      setRelayState(data.relay);
-      setStatus(data.status);
-    });
-
-    return () => {
-      socket.off("relayUpdated");
-    };
-  }, []);
-
-  /* ===========================
-     TEMP / HUM CHANGE
-  =========================== */
   useEffect(() => {
     if (!history || history.length < 2) return;
 
@@ -50,22 +26,19 @@ export default function DeviceCard({ device, history, toggleRelay, role }) {
     setHumChange(Number(humDiff.toFixed(2)));
   }, [history]);
 
-  /* ===========================
-     TOGGLE BUTTON
-  =========================== */
   const handleToggle = async () => {
-    const newState = !relayState;
+    // const newState = !relayState;
 
-    // optimistic UI
-    setRelayState(newState);
-    setStatus(newState ? "online" : "offline");
+    // // optimistic UI
+    // setRelayState(newState);
+    // setStatus(newState ? "online" : "offline");
 
     try {
       await toggleRelay();
     } catch (err) {
       // rollback if failed
-      setRelayState(!newState);
-      setStatus(!newState ? "online" : "offline");
+      // setRelayState(!newState);
+      // setStatus(!newState ? "online" : "offline");
     }
   };
 

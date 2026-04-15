@@ -1,10 +1,10 @@
-const anedya = require("../services/anedyaServices");
-const socketIO = require("../socket");
 const Device = require("../models/Device");
+const simulator = require("../simulator");
+const DeviceHistory = require("../models/DeviceHistory");
 exports.getDevices = async (req, res) => {
   try {
-    const data = await anedya.getLiveData();
-    console.log("Live data:", data);
+    const data = await Device.findOne();
+    // console.log("Live data:", data);
     res.json({
       name: "Room 1",
       status: data.online ? "online" : "offline",
@@ -18,16 +18,15 @@ exports.getDevices = async (req, res) => {
 };
 
 exports.getHistory = async (req, res) => {
-  const data = await anedya.getHistory();
-  console.log("Historical data:", data);
+  const data = await DeviceHistory.findOne();
+  // console.log("Historical data:", data);
   res.json(data);
 };
-
-const socket = require("../socket");
 
 exports.toggleRelay = async (req, res) => {
   try {
     let device = await Device.findOne();
+    console.log("Current device state before toggle:", device);
     if (!device) {
       device = await Device.create({
         relay: false,
@@ -35,15 +34,20 @@ exports.toggleRelay = async (req, res) => {
         humidity: 50,
       });
     }
-
     device.relay = !device.relay;
+    // if (relayState) {
+    //   simulator.startSimulator();
+    // } else {
+    //   simulator.stopSimulator();
+    // }
+    console.log("Toggling relay to:", device.relay);
     await device.save();
-
-    socketIO.getIO().emit("relayUpdated", {
-      relay: device.relay,
-      status: device.relay ? "online" : "offline",
-    });
-
+    if (device.relay) {
+      await simulator.startSimulator();
+    } else {
+      simulator.stopSimulator();
+    }
+    // console.log("Updated device state:", device);
     res.json(device);
   } catch (err) {
     console.error("Relay Error:", err);

@@ -3,7 +3,6 @@ import API from "../services/api";
 import DeviceCard from "../components/DeviceCard";
 import TempChart from "../components/charts";
 import { AuthContext } from "../context/AuthContext";
-import socket from "../services/socket";
 
 export default function Dashboard() {
   const [devices, setDevices] = useState([]);
@@ -11,9 +10,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const { user } = useContext(AuthContext);
 
-  /* ===========================
-     INITIAL FETCH (ONLY ONCE)
-  =========================== */
+  const [intervalID, setIntervalId] = useState(null);
+
   const fetchData = async () => {
     try {
       const [deviceRes, historyRes] = await Promise.all([
@@ -22,78 +20,50 @@ export default function Dashboard() {
       ]);
 
       setDevices([deviceRes.data]);
-
-      // ✅ REPLACE (NOT APPEND)
-      setHistory(historyRes.data || []);
-
+      console.log("Fetched device data:", deviceRes.data);
+      setHistory(historyRes.data.data || []);
+      console.log("Fetched history data:", historyRes.data.data);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching data:", err);
     }
   };
 
-  /* ===========================
-     SOCKET (REAL-TIME DATA)
-  =========================== */
-  useEffect(() => {
-    socket.off("dataUpdated"); // 🔥 prevent duplicates
-
-    socket.on("dataUpdated", (data) => {
-      setHistory((prev) => {
-        const updated = [...prev, data];
-
-        // keep last 50 only
-        if (updated.length > 50) updated.shift();
-
-        return updated;
-      });
-    });
-
-    return () => {
-      socket.off("dataUpdated");
-    };
-  }, []);
-
-  /* ===========================
-     LOAD ON MOUNT
-  =========================== */
+  // Initial load
   useEffect(() => {
     fetchData();
   }, []);
 
-  /* ===========================
-     TOGGLE RELAY
-  =========================== */
-  const toggleRelay = async (currentRelay) => {
+  // Toggle relay
+  const toggleRelay = async () => {
     try {
-      const newState = !currentRelay;
-
       await API.post("/devices/relay");
-
-      setDevices((prev) =>
-        prev.map((d) => ({
-          ...d,
-          relay: newState,
-        })),
-      );
-
-      // 🔥 If turning OFF → reload DB history
-      if (!newState) {
-        fetchData();
-      }
-
-      // 🔥 If turning ON → clear graph (socket will refill)
-      else {
-        setHistory([]);
-      }
+      fetchData();
     } catch (err) {
       console.error("Relay toggle failed:", err);
     }
   };
 
-  /* ===========================
-     LOADING UI
-  =========================== */
+  useEffect(() => {
+    const relay = devices[0]?.relay;
+    console.log("Relay state changed:", relay);
+    // if (!relay) {
+    //   if (intervalID) {
+    //     clearInterval(intervalID);
+    //     setIntervalId(null);
+    //   }
+    //   return;
+    // }
+
+    const id = setInterval(() => {
+      fetchData();
+    }, 3000);
+
+    setIntervalId(id);
+
+    return () => clearInterval(id);
+  }, [devices]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen text-lg">
@@ -116,14 +86,14 @@ export default function Dashboard() {
             key={index}
             device={d}
             history={history}
-            toggleRelay={() => toggleRelay(d.relay)} // ✅ FIXED
+            toggleRelay={toggleRelay}
             role={user?.role}
           />
         ))}
       </div>
 
       {/* Chart */}
-      <div className="bg-white p-5 rounded-lg shadow-sm">
+      <div className="bg-white p-5 rounded-lg shadow-sm mt-6">
         <TempChart data={history} />
       </div>
     </div>
