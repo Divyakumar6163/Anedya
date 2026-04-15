@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import API from "../services/api";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -9,13 +9,19 @@ export default function Login() {
   const [error, setError] = useState("");
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const hasRun = useRef(false);
+
   useEffect(() => {
+    if (hasRun.current) return;
+    hasRun.current = true;
+
     const token = localStorage.getItem("token");
+
     if (token) {
       login(token);
-      navigate("/");
+      navigate("/", { replace: true });
     }
-  }, []);
+  }, [login, navigate]);
 
   const handleSubmit = async () => {
     try {
